@@ -1,6 +1,5 @@
 import { ApolloServer, gql } from "apollo-server";
 
-// GraphQL에 알려줬던 형태를 따라야 한다.
 const tweets = [
   {
     id:"1",
