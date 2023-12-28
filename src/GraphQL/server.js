@@ -1,13 +1,26 @@
 import { ApolloServer, gql } from "apollo-server";
 
-const tweets = [
+let tweets = [
   {
-    id:"1",
-    text:"first one!",
+    id: "1",
+    text: "first one!",
   },
   {
-    id:"2",
-    text:"second one!",
+    id: "2",
+    text: "second one!",
+  },
+];
+
+let users = [
+  {
+    id: "1",
+    firstName: "moon",
+    lastName: "ilyun",
+  },
+  {
+    id: "2",
+    firstName:"kim",
+    lastName:"jinhye"
   }
 ]
 
@@ -19,9 +32,9 @@ const tweets = [
 const typeDefs = gql`
   type User {
     id: ID!
-    username: String!
     firstName: String!
     lastName: String!
+    fullName: String!
   }
   type Tweet {
     id: ID!
@@ -29,45 +42,55 @@ const typeDefs = gql`
     author: User
   }
   type Query {
+    allUsers: [User!]!
     allTweets: [Tweet!]!
     tweet(id: ID!): Tweet
-    ping: String!
   }
   type Mutation {
-      postTweet(text:String!, userId: ID!): Tweet!
-      deleteTweet(id: ID!): Boolean!
+    postTweet(text: String!, userId: ID!): Tweet!
+    deleteTweet(id: ID!): Boolean!
   }
 `;
 
 const resolvers = {
   Query: {
-    allTweets(){
+    allTweets() {
       return tweets;
     },
-    tweet(root, {id}) {
+    tweet(root, { id }) {
       return tweets.find((tweet) => tweet.id === id);
+    },
+    allUsers() {
+      console.log("allUsers called!");
+      return users
     }
   },
-}
+  Mutation: {
+    postTweet(root, { text, userId }) {
+      const newTweet = {
+        id: tweets.length + 1,
+        text,
+      };
+      tweets.push(newTweet);
+      return newTweet;
+    },
+    deleteTweet(root, { id }) {
+      const tweet = tweets.find((tweet) => tweet.id === id);
+      if (!tweet) return false;
+      tweets = tweets.filter((tweet) => tweet.id !== id);
+      return true;
+    },
+  },
+  User: {
+    fullName({firstName, lastName}){
+      return `${firstName} ${lastName}`
+    },
+  },
+};
 
 const server = new ApolloServer({ typeDefs, resolvers });
-
+  
 // listen() 은 Promise이다.
 server.listen().then(({ url }) => {
   console.log(`Running on ${url}`);
 });
-
-
-// type User {
-//   id: ID
-//   username: String
-// }
-// type Tweet {
-//   id: ID
-//   text: String
-//   author: User
-// }
-// type Query {
-//   allTweets: [Tweet]
-//   tweet(id: ID): Tweet
-// }
